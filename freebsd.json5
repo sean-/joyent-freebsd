@@ -1,0 +1,66 @@
+// This Packer Template requires JSON5 support in packer(1) or the cfgt(1)
+// utility.
+//
+// USAGE with unpatched packer: cfgt -i freebsd.json5 | packer build -
+// USAGE with patched packer: packer build freebsd.json5
+//
+// packer w/ JSON5 support: https://github.com/sean-/packer/tree/f-json5
+// cfgt: go get -u github.com/sean-/cfgt
+{
+    variables: {
+        // Environment variables pulled from `triton env` or `triton env $(PROFILE_NAME)`
+        triton_account: "{{ env `SDC_ACCOUNT` }}",
+        triton_key_id: "{{ env `SDC_KEY_ID` }}",
+        triton_key_material_path: "{{ env `SDC_KEY_MATERIAL_PATH` }}",
+        triton_url: "{{ env `SDC_URL` }}",
+        image_name: "my-freebsd-image",
+        image_version: "1.0.0",
+    },
+
+    builders: [
+        {
+            type: "triton",
+
+            triton_url: "{{ user `triton_url` }}",
+            triton_account: "{{ user `triton_account` }}",
+            triton_key_id: "{{ user `triton_key_id` }}",
+            triton_key_material: "{{ user `triton_key_material_path` }}",
+
+            source_machine_name: "freebsd-demo-image-builder",
+
+            // Value from the NAME column output from `make packages`
+            source_machine_package: "k4-highcpu-kvm-250M",
+
+            // Value from the ID column output from `make images-freebsd`
+            source_machine_image: "d6542cce-1815-11e7-92d7-cf2bd01fcadc",
+
+            // Value from the ID column output from `make networks`
+            source_machine_networks: [
+                "42325ea0-eb62-44c1-8eb6-0af3e2f83abc",
+            ],
+
+            ssh_username: "root",
+            ssh_private_key_file: "{{ user `triton_key_material_path` }}",
+
+            image_name: "{{ user `image_name` }}",
+            image_version: "{{ user `image_version` }}",
+        },
+    ],
+
+    provisioners: [
+        {
+            type: "shell",
+            // Workaround until https://github.com/hashicorp/packer/pull/4909 is
+            // merged and released.
+            // execute_command: "/bin/chmod +x {{ .Path }}; /usr/bin/env {{ .Vars }} {{ .Path }}",
+            inline: [
+                "/usr/bin/uname -a",
+
+                // Update the FreeBSD package database
+                "/usr/bin/env ASSUME_ALWAYS_YES=yes /usr/local/sbin/pkg upgrade",
+                "/usr/local/sbin/pkg update",   // Update any out of date packages
+                "/usr/local/sbin/pkg audit -F", // Install vulnerability database
+            ],
+        },
+    ],
+}
