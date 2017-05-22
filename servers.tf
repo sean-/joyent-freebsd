@@ -15,7 +15,7 @@ resource "triton_machine" "my-freebsd-server" {
   nic {
     # ID from `make networks`, the network must be in the same data center as
     # the image
-    network = "01234567-89ab-cdef-01234567-89ab-cdef"
+    network = "01234567-89ab-cdef-0123-456789abcdef"
   }
 
   # Arbitrary tags, useful with firewalls
