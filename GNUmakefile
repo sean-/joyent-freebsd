@@ -7,6 +7,9 @@ TERRAFORM=$(shell which 2>&1 /dev/null terraform | head -1)
 
 IMAGE_NAME ?= my-freebsd-image
 IMAGE_VERSION ?= 1.0.0
+TARGET ?= freebsd.json
+
+.SUFFIXES: .json .json5
 
 # NOTES:
 #
@@ -43,15 +46,16 @@ taint: ## Taints a given resource
 
 # Packer Targets
 
-freebsd.json: freebsd.json5
+%.json: %.json5
 	cfgt -i $< -o $@
 
-build:: freebsd.json ## Build a FreeBSD image
+build:: $(TARGET) ## Build a FreeBSD image
 	envchain $(ENVCHAIN_NAMESPACE) \
 		packer build \
 			-var "image_name=$(IMAGE_NAME)" \
 			-var "image_version=$(IMAGE_VERSION)" \
-			freebsd.json
+			$(EXTRA_ARGS) \
+			$(TARGET)
 
 # Triton Targets
 
