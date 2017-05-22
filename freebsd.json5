@@ -53,10 +53,31 @@
             inline: [
                 "/usr/bin/uname -a",
 
-                // Update the FreeBSD package database
-                "/usr/bin/env ASSUME_ALWAYS_YES=yes /usr/local/sbin/pkg upgrade",
-                "/usr/local/sbin/pkg update",   // Update any out of date packages
-                "/usr/local/sbin/pkg audit -F", // Install vulnerability database
+                // Remove all packages
+                "/usr/bin/env ASSUME_ALWAYS_YES=yes /usr/local/sbin/pkg remove -a -f",
+
+                // Shoot sendmail(8)
+                "/usr/sbin/service sendmail stop",
+                "/usr/sbin/sysrc sendmail_enable=NONE",
+
+                // Re-bootstrap pkg(1)
+                "/usr/bin/env ASSUME_ALWAYS_YES=yes /usr/sbin/pkg bootstrap -N",
+
+                // Update and install package auditing
+                "/usr/local/sbin/pkg update -f",  // Update the FreeBSD package database
+                "/usr/local/sbin/pkg upgrade -y", // Update any out of date packages
+                "/usr/local/sbin/pkg audit -F",   // Install vulnerability database
+
+                // Mandatory packages for administration
+                "/usr/local/sbin/pkg install -y net/mosh net/openntpd sysutils/tmux",
+
+                // OpenNTPd configuration
+                "/usr/bin/sed -i.bak -e 's%^servers.*%#servers pool.ntp.org%' /usr/local/etc/ntpd.conf",
+                "/usr/bin/printf 'server 0.freebsd.pool.ntp.org\nserver 1.freebsd.pool.ntp.org\nserver 2.freebsd.pool.ntp.org\nserver 3.freebsd.pool.ntp.org\n' | /usr/bin/tee -a /usr/local/etc/ntpd.conf",
+                "/usr/sbin/service ntpd stop",
+                "/usr/sbin/sysrc ntpd_enable=NO",
+                "/usr/sbin/sysrc openntpd_enable=YES",
+                "/usr/sbin/service openntpd start",
             ],
         },
     ],
