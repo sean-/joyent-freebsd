@@ -6,13 +6,25 @@ and [`terraform`](https://www.terraform.io/) config to:
 * build a custom FreeBSD image on Triton
 * Provision the custom FreeBSD image on Triton (or use one of the stock images)
 
+## Installation/Usage
+
+* Make sure you have a Triton profile setup: `triton profile get`
+* `make build` - Takes ~8min to complete the image create and patching
+* Copy the UUID out of `make build` and add it to `servers.tf`
+* `make plan && make apply`
+
 See the comments in
 [`freebsd.json5`](https://github.com/sean-/joyent-freebsd/blob/master/freebsd.json5),
 [`provider.tf`](https://github.com/sean-/joyent-freebsd/blob/master/provider.tf),
 [`servers.tf`](https://github.com/sean-/joyent-freebsd/blob/master/servers.tf),
 and
 [`GNUmakefile`](https://github.com/sean-/joyent-freebsd/blob/master/GNUmakefile)
-for details.
+for additional details.
+
+## Debugging Tips
+
+* If the template fails for some reason in order to be able to log into the
+  instance and debug the problem, abort: `make build EXTRA_ARGS=-on-error=abort`
 
 ## Workaround for older versions of Packer
 

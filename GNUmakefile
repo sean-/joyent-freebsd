@@ -1,3 +1,4 @@
+SSH_USER ?= root
 TFSTATE_FILE ?= .terraform.state
 TFVARS_FILE ?= .terraform.vars
 TF_PLAN ?= .terraform.plan
@@ -7,7 +8,7 @@ TERRAFORM=$(shell which 2>&1 /dev/null terraform | head -1)
 
 IMAGE_NAME ?= my-freebsd-image
 IMAGE_VERSION ?= 1.0.0
-TARGET ?= freebsd.json
+TEMPLATE ?= freebsd.json
 
 .SUFFIXES: .json .json5
 
@@ -49,18 +50,21 @@ taint: ## Taints a given resource
 %.json: %.json5
 	cfgt -i $< -o $@
 
-build:: $(TARGET) ## Build a FreeBSD image
+build:: $(TEMPLATE) ## Build a FreeBSD image
 	envchain $(ENVCHAIN_NAMESPACE) \
 		packer build \
 			-var "image_name=$(IMAGE_NAME)" \
 			-var "image_version=$(IMAGE_VERSION)" \
 			$(EXTRA_ARGS) \
-			$(TARGET)
+			$(TEMPLATE)
 
 # Triton Targets
 
 images-freebsd:: ## Show all FreeBSD images on Triton
 	envchain $(ENVCHAIN_NAMESPACE) triton images -l name=~freebsd
+
+instances:: ## Show all running instances on Triton
+	envchain $(ENVCHAIN_NAMESPACE) triton instances
 
 my-images:: ## Show my Triton images
 	envchain $(ENVCHAIN_NAMESPACE) triton images -l public=false
@@ -70,6 +74,14 @@ networks::  ## Show Triton networks
 
 packages::  ## Show Triton Packages
 	envchain $(ENVCHAIN_NAMESPACE) triton packages
+
+ssh::  ## SSH to a given target on Triton
+	@if [ -z "$(TARGET)" ]; then \
+		printf "ERROR: specify an instance name. HINT: %s ssh TARGET=<NAME>\n" "`basename $(MAKE)`"; \
+		$(MAKE) -s instances; \
+		exit 1; \
+	fi
+	envchain $(ENVCHAIN_NAMESPACE) triton ssh $(SSH_USER)@$(TARGET)
 
 # Misc Targets
 cfgt:: ## Install cfgt(1)

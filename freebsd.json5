@@ -48,28 +48,40 @@
     ],
 
     provisioners: [
-        {
+        { // Clean up the base FreeBSD image
             type: "shell",
             inline: [
+                // Log the version of the builder image
                 "/usr/bin/uname -a",
+
+                // Enable async IO for provisioning
+                "/sbin/mount -u -o async,noatime /",
 
                 // Remove all packages
                 "/usr/bin/env ASSUME_ALWAYS_YES=yes /usr/local/sbin/pkg remove -a -f",
 
+                // Update via freebsd-update(1)
+                "/usr/sbin/freebsd-update --not-running-from-cron fetch",
+                "/usr/sbin/freebsd-update install",
+                "/bin/date '+0 %k * * * root /usr/sbin/freebsd-update cron' | /usr/bin/tee -a /etc/crontab",
+
                 // Shoot sendmail(8)
-                "/usr/sbin/service sendmail stop",
                 "/usr/sbin/sysrc sendmail_enable=NONE",
+                "/usr/sbin/service sendmail onestop",
 
                 // Re-bootstrap pkg(1)
                 "/usr/bin/env ASSUME_ALWAYS_YES=yes /usr/sbin/pkg bootstrap -N",
 
                 // Update and install package auditing
-                "/usr/local/sbin/pkg update -f",  // Update the FreeBSD package database
-                "/usr/local/sbin/pkg upgrade -y", // Update any out of date packages
-                "/usr/local/sbin/pkg audit -F",   // Install vulnerability database
+                "/usr/local/sbin/pkg-static update -f",  // Update the FreeBSD package database
+                "/usr/local/sbin/pkg-static upgrade -y", // Update any out of date packages
+                "/usr/local/sbin/pkg audit -F",          // Install vulnerability database
+
+                // Mandatory packages for triton
+                "/usr/local/sbin/pkg install -y shells/bash",
 
                 // Mandatory packages for administration
-                "/usr/local/sbin/pkg install -y net/mosh net/openntpd sysutils/tmux",
+                "/usr/local/sbin/pkg install -y net/mosh net/openntpd sysutils/runit sysutils/tmux",
 
                 // OpenNTPd configuration
                 "/usr/bin/sed -i.bak -e 's%^servers.*%#servers pool.ntp.org%' /usr/local/etc/ntpd.conf",
@@ -78,6 +90,20 @@
                 "/usr/sbin/sysrc ntpd_enable=NO",
                 "/usr/sbin/sysrc openntpd_enable=YES",
                 "/usr/sbin/service openntpd start",
+
+                "/usr/sbin/sysrc clear_tmp_enable=YES",
+
+                "/usr/sbin/pw groupadd _log -g 899",
+                "/usr/sbin/pw useradd _log -u 899 -g _log",
+                "/usr/sbin/sysrc runsvdir_enable=YES",
+                "/usr/sbin/sysrc runsvdir_path=/var/service",
+            ],
+        },
+
+        { // Finishing touches on the install
+            type: "shell",
+            inline: [
+                "/etc/periodic/weekly/310.locate",
             ],
         },
     ],
