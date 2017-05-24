@@ -64,7 +64,7 @@ images-freebsd:: ## Show all FreeBSD images on Triton
 	envchain $(ENVCHAIN_NAMESPACE) triton images -l name=~freebsd
 
 instances:: ## Show all running instances on Triton
-	envchain $(ENVCHAIN_NAMESPACE) triton instances
+	envchain $(ENVCHAIN_NAMESPACE) triton instances -o name,ips,id
 
 my-images:: ## Show my Triton images
 	envchain $(ENVCHAIN_NAMESPACE) triton images -l public=false
