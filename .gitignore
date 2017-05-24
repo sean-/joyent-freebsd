@@ -1,4 +1,5 @@
+*.json
 .terraform.plan
 .terraform.state
 .terraform.state.backup
-*.json
+.terraform.vars

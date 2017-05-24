@@ -8,9 +8,12 @@ and [`terraform`](https://www.terraform.io/) config to:
 
 ## Installation/Usage
 
-* Make sure you have a Triton profile setup: `triton profile get`
+* Make sure you have a Triton profile setup: `triton profile get` && `triton
+  profile set-current`
 * `make build` - Takes ~8min to complete the image create and patching
-* Copy the UUID out of `make build` and add it to `servers.tf`
+* `cp .terraform.vars{.example,}`
+* Copy the UUID out of `make build` and add it to `.terraform.vars`
+* Edit remaining values in `.terraform.vars` accordingly
 * `make plan && make apply`
 
 See the comments in
