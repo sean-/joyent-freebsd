@@ -2,8 +2,8 @@ resource "triton_machine" "my-freebsd-server" {
   count = 1
   name  = "my-freebsd${format("%02d", count.index + 1)}"
 
-  package = "${var.my_image_size}"
   image   = "${var.my_image_id}"
+  package = "${var.my_package_size}"
 
   nic {
     network = "${var.network_id}"

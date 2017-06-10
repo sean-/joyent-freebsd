@@ -10,7 +10,7 @@
 #my_image_id = "deadbeef-c0ff-eede-adbe-efc0ffeebeef"
 
 # Package name from `make packages`
-#my_image_size = "k4-highcpu-kvm-250M"
+#my_package_size = "k4-highcpu-kvm-250M"
 
 # Triton account information. Example:
 #

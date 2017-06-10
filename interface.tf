@@ -7,7 +7,7 @@ variable "my_image_id" {
   type = "string"
 }
 
-variable "my_image_size" {
+variable "my_package_size" {
   type        = "string"
   description = "Size of the image to create"
 
